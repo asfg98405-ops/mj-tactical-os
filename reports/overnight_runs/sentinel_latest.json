@@ -1,0 +1,20 @@
+{
+  "timestamp": "2026-10-11T14:21:01.801Z",
+  "cycle": 1,
+  "uptime_seconds": 0,
+  "summary": {
+    "total_tests": 17,
+    "passed": 17,
+    "failed": 0,
+    "pass_rate_pct": 100
+  },
+  "latest_memory": {
+    "cycle": 1,
+    "rssMb": 64.46,
+    "heapUsedMb": 9.63,
+    "timestamp": "2026-10-11T14:21:01.801Z"
+  },
+  "recent_latencies_ms": [
+    130.64
+  ]
+}
