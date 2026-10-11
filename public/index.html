@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>MJ TACTICAL OS | Cyber Command Center</title>
+  
+  <!-- PWA Metadata -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#00f0ff">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="icon" type="image/svg+xml" href="/assets/dragon-crest.svg">
+
+  <!-- Fonts & Styles -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/cockpit.css">
+  <style>
+    body { font-family: 'Cairo', var(--font-sans); }
+    .mono { font-family: var(--font-mono); }
+    [dir="ltr"] { direction: ltr; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Tactical Header -->
+    <header class="tactical-header">
+      <div class="brand-section">
+        <div class="dragon-logo-wrapper">
+          <img src="/assets/dragon-crest.svg" alt="MJ Tactical Dragon Logo" width="54" height="54">
+        </div>
+        <div class="brand-info">
+          <h1>
+            <span>MJ TACTICAL OS</span>
+            <span style="font-size:0.75rem; background:rgba(0,240,255,0.15); border:1px solid var(--cyan-neon); padding:2px 8px; border-radius:4px; color:var(--cyan-neon); font-family:var(--font-mono);">v1.0</span>
+          </h1>
+          <div class="tagline">منظومة القيادة السيبرانية التكتيكية • ثيم التنين الأزرق</div>
+        </div>
+      </div>
+
+      <div class="header-status-deck">
+        <div class="status-pill armed" id="gateway-status-pill">
+          <span class="dot"></span>
+          <span class="mono" id="gateway-status-badge">GATEWAY: ARMED [4848]</span>
+        </div>
+        <div class="status-pill" id="ws-status-pill">
+          <span class="dot" style="background:#f59e0b;"></span>
+          <span class="mono">WS: CONNECTING</span>
+        </div>
+        <div class="status-pill" id="auth-status-pill">
+          <span class="dot" style="background:#f59e0b;"></span>
+          <span class="mono">AUTH: PENDING</span>
+        </div>
+        <button class="btn-auth-config" id="btn-open-auth-modal">
+          🔑 مفتاح الأمان (Bearer)
+        </button>
+      </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="tactical-nav">
+      <button class="nav-tab-btn active" data-tab="tab-cockpit">
+        🚀 لوحة القيادة والعدادات (Cockpit)
+      </button>
+      <button class="nav-tab-btn" data-tab="tab-tools">
+        🛠️ مصفوفة الأدوات الـ 12 (Cyber Suite)
+      </button>
+      <button class="nav-tab-btn" data-tab="tab-profile">
+        👤 ملف المستخدم والعتاد (RedMagic Hub)
+      </button>
+      <button class="nav-tab-btn" data-tab="tab-reports">
+        📑 التقارير والتدقيق الجنائي (Forensics)
+      </button>
+    </nav>
+
+    <!-- TAB 1: COCKPIT & LIVE TELEMETRY -->
+    <main id="tab-cockpit" class="tab-content active">
+      <!-- 4 Live Radial Gauges -->
+      <section class="gauges-grid">
+        <div class="gauge-card" id="gauge-cpu"></div>
+        <div class="gauge-card" id="gauge-ram"></div>
+        <div class="gauge-card" id="gauge-battery"></div>
+        <div class="gauge-card" id="gauge-thermal"></div>
+      </section>
+
+      <!-- Tactical Control Deck -->
+      <section class="control-deck">
+        <!-- Frequency & Sampling -->
+        <div class="deck-group">
+          <div class="deck-group-title">
+            ⏱️ تردد الفحص وتدفق البيانات (Scan Frequency)
+          </div>
+          <div class="slider-container">
+            <div class="slider-header">
+              <span>فاصل قراءة الحساسات (ثوانٍ):</span>
+              <span class="slider-val-badge" id="scan-freq-val">5s</span>
+            </div>
+            <input type="range" id="scan-freq-slider" min="1" max="60" value="5" step="1">
+            <span style="font-size:0.75rem; color:var(--text-muted);">
+              نطاق التحكم: من ثانية واحدة (Realtime) حتى 60 ثانية (Power Saving).
+            </span>
+          </div>
+
+          <div style="margin-top:10px;">
+            <label style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:6px;">نمط المسح والعمليات (Scan Mode):</label>
+            <select class="custom-select" id="scan-mode-select" style="width:100%;">
+              <option value="PASSIVE_AUDIT">1. الفحص الصامت (Passive Audit)</option>
+              <option value="STEALTH_RECON">2. الاستطلاع التكتيكي (Stealth Recon)</option>
+              <option value="DEEP_AUDIT">3. التدقيق الدفاعي المعمق (Deep Defensive Audit)</option>
+              <option value="AGGRESSIVE_DIAG">4. التشخيص عالي التردد (Aggressive Diagnostics)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Security Switches -->
+        <div class="deck-group">
+          <div class="deck-group-title">
+            🛡️ بوابات العزل والأمان الصفري (Zero-Trust)
+          </div>
+          <div class="switch-row">
+            <div class="switch-label">
+              <span>تأمين وتشغيل البوابة (Gateway Arming)</span>
+              <span class="switch-desc">تمكين استقبال اتصالات WebSockets والـ REST</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="gateway-arm-switch" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="switch-row">
+            <div class="switch-label">
+              <span>عزل واجهة الاسترجاع (Strict Loopback Only)</span>
+              <span class="switch-desc">حظر كافة الطلبات غير الصادرة من 127.0.0.1</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="firewall-switch">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div style="font-size:0.75rem; color:var(--text-cyan); font-family:var(--font-mono); margin-top:8px;">
+            نمط العمل النشط: <strong id="mode-status-text">PASSIVE_AUDIT</strong>
+          </div>
+        </div>
+
+        <!-- Quick Tactical Execution -->
+        <div class="deck-group">
+          <div class="deck-group-title">
+            ⚡ أوامر التنفيذ الميداني السريعة
+          </div>
+          <p style="font-size:0.78rem; color:var(--text-muted);">
+            إطلاق فحوصات فورية عبر بيئة Kali NetHunter ومحرك القياسات.
+          </p>
+          <div class="quick-actions-bar">
+            <button class="btn-tactical primary" id="btn-run-full-audit">
+              🛡️ فحص NetHunter الشامل
+            </button>
+            <button class="btn-tactical" id="btn-quick-ping">
+              ⚡ فحص سرعة المنفذ (Socket Ping)
+            </button>
+          </div>
+          <div style="margin-top:auto; font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono);">
+            وقت التشغيل: <span id="uptime-display">--</span> | العقدة: <span id="node-id-display">MJ-ALPHA-01</span>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- TAB 2: 12-TOOL SUITE -->
+    <main id="tab-tools" class="tab-content">
+      <div style="margin-bottom: 16px; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <h2 style="font-size: 1.25rem; color:#fff;">مصفوفة أدوات فحص الشبكات والأمان التكتيكية الـ 12</h2>
+          <p style="font-size:0.8rem; color:var(--text-muted);">
+            أدوات متوافقة 100% مع بيئة Kali NetHunter Rootless ومحمية بنظام التحقق الزمني الثابت.
+          </p>
+        </div>
+      </div>
+
+      <!-- 12 Tools Grid -->
+      <section class="tools-grid" id="tools-container">
+        <!-- Rendered dynamically by app.js -->
+      </section>
+
+      <!-- Results Console -->
+      <section class="results-console">
+        <div class="console-header">
+          <div class="console-title">
+            <span>💻 سجل ومخرجات الفحص المباشر:</span>
+            <span id="console-active-tool" style="color:var(--text-cyan); font-family:var(--font-mono); font-size:0.8rem;">جاهز للاستقبال</span>
+          </div>
+          <div class="console-actions">
+            <button class="btn-tactical" id="btn-copy-json">📋 نسخ JSON</button>
+            <button class="btn-tactical" id="btn-download-json">💾 تحميل التقرير</button>
+          </div>
+        </div>
+        <pre class="json-view-box mono" id="json-output" dir="ltr">// انقر على "تشغيل الفحص" في أي من الأدوات الـ 12 لعرض المخرجات اللحظية هنا...</pre>
+      </section>
+    </main>
+
+    <!-- TAB 3: USER PROFILE & REDMAGIC HUB -->
+    <main id="tab-profile" class="tab-content">
+      <section class="profile-grid">
+        <!-- Operator Identity Card -->
+        <div class="profile-card">
+          <div class="profile-header">
+            <div class="avatar-badge">MJ</div>
+            <div class="profile-details">
+              <h3>المؤسس والمشغّل السيبراني: MJ</h3>
+              <p>Lead Architect & Sovereign Node Commander</p>
+            </div>
+          </div>
+          <ul class="spec-list">
+            <li class="spec-item">
+              <span class="spec-key">هوية المنظومة:</span>
+              <span class="spec-val">MJ Tactical OS</span>
+            </li>
+            <li class="spec-item">
+              <span class="spec-key">هيكل الفريق:</span>
+              <span class="spec-val">5 Autonomous Agents</span>
+            </li>
+            <li class="spec-item">
+              <span class="spec-key">مستوى الصلاحيات:</span>
+              <span class="spec-val" style="color:var(--emerald);">Tier-1 Rootless Sovereign</span>
+            </li>
+            <li class="spec-item">
+              <span class="spec-key">منفذ البوابة المحمي:</span>
+              <span class="spec-val">127.0.0.1:4848</span>
+            </li>
+            <li class="spec-item">
+              <span class="spec-key">تشفير التوكن:</span>
+              <span class="spec-val">SHA-256 / Constant-Time Safe</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Hardware & Device Card -->
+        <div class="profile-card">
+          <div class="profile-header">
+            <div class="avatar-badge" style="background:linear-gradient(135deg, #f59e0b, #ef4444); color:#fff;">RM</div>
+            <div class="profile-details">
+              <h3>عتاد هاتف RedMagic الميداني</h3>
+              <p>Tactical Edge Hardware Specification</p>
+            </div>
+          </div>
+          <ul class="spec-list">
+            <li class="spec-item">
+              <span class="spec-key">المعالج والبيئة:</span>
+              <span class="spec-val">ARM64 (aarch64) Linux</span>
+            </li>
+            <li class="spec-item">
+              <span class="spec-key">بيئة التشغيل:</span>
+              <span class="spec-val">Kali NetHunter Rootless (PRoot)</span>
+            </li>
+            <li class="spec-item">
+              <span class="spec-key">محرك النواة:</span>
+              <span class="spec-val">Node.js v24.x + Express 5</span>
+            </li>
+            <li class="spec-item">
+              <span class="spec-key">توزيع الاستهلاك:</span>
+              <span class="spec-val">Hermetic & Zero Overhead</span>
+            </li>
+            <li class="spec-item">
+              <span class="spec-key">حساسات التبريد:</span>
+              <span class="spec-val" style="color:var(--cyan-neon);">Active Thermal Guard</span>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Commercial Licensing Tiers -->
+      <section style="margin-top: 24px;">
+        <h3 style="font-size: 1.2rem; color:#fff; margin-bottom: 8px;">باقات الترخيص التجاري المعتمدة لـ MJ</h3>
+        <p style="font-size: 0.82rem; color:var(--text-muted); margin-bottom: 16px;">
+          خيارات الاشتراك والترخيص الدولي لمنظومة MJ Tactical OS للمطورين والاستوديوهات.
+        </p>
+        <div class="tiers-container">
+          <!-- Tier 1 -->
+          <div class="tier-card">
+            <div>
+              <div class="tier-name">Indie Tier</div>
+              <div style="font-size:0.75rem; color:var(--text-muted);">للمطورين المستقلين والأفراد</div>
+              <div class="tier-price">$9 <span style="font-size:0.8rem; color:var(--text-muted);">/ شهرياً</span></div>
+              <ul class="tier-features">
+                <li>عقدة تكتيكية ميدانية واحدة</li>
+                <li>مصفوفة أدوات الفحص الـ 12 الأساسية</li>
+                <li>لوحة قيادة PWA التفاعلية</li>
+                <li>تحديثات مجتمعية ودعم فني أساسي</li>
+              </ul>
+            </div>
+            <button class="btn-tactical" style="width:100%; justify-content:center;">اختيار الباقة</button>
+          </div>
+
+          <!-- Tier 2 -->
+          <div class="tier-card featured">
+            <div>
+              <div class="tier-name">Studio Tier</div>
+              <div style="font-size:0.75rem; color:var(--cyan-neon);">لفرق العمل واستوديوهات البرمجيات</div>
+              <div class="tier-price">$29 <span style="font-size:0.8rem; color:var(--text-muted);">/ شهرياً</span></div>
+              <ul class="tier-features">
+                <li>حتى 5 عقد تكتيكية متزامنة</li>
+                <li>بث WebSockets فائق السرعة للحساسات</li>
+                <li>أتمتة الأوامر وحزم الـ Intents المخصصة</li>
+                <li>تصدير تقارير جنائية تفصيلية (JSON & MD)</li>
+                <li>دعم فني هندسي مخصص</li>
+              </ul>
+            </div>
+            <button class="btn-tactical primary" style="width:100%; justify-content:center;">الباقة الأكثر طلباً</button>
+          </div>
+
+          <!-- Tier 3 -->
+          <div class="tier-card">
+            <div>
+              <div class="tier-name">Enterprise Tier</div>
+              <div style="font-size:0.75rem; color:var(--text-muted);">للمؤسسات والبيئات المعزولة تماماً</div>
+              <div class="tier-price">$99 <span style="font-size:0.8rem; color:var(--text-muted);">/ شهرياً</span></div>
+              <ul class="tier-features">
+                <li>عقد تكتيكية غير محدودة</li>
+                <li>تكامل كامل مع NetHunter Rootless & Kali Labs</li>
+                <li>اتفاقية مستوى الخدمة (SLA) واستضافة ذاتية</li>
+                <li>ترخيص تجاري كامل باسم المؤسسة</li>
+              </ul>
+            </div>
+            <button class="btn-tactical" style="width:100%; justify-content:center;">التواصل مع MJ</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- TAB 4: FORENSICS & REPORTING -->
+    <main id="tab-reports" class="tab-content">
+      <section class="results-console">
+        <div class="console-header">
+          <div class="console-title">
+            📑 توليد وتصدير التقارير الجنائية الموحدة (Forensic Reports)
+          </div>
+          <div class="console-actions">
+            <button class="btn-tactical primary" id="btn-generate-report">
+              ✨ توليد تقرير شامل جديد
+            </button>
+            <button class="btn-tactical" id="btn-export-report-json">
+              💾 تصدير JSON
+            </button>
+            <button class="btn-tactical" id="btn-export-report-md">
+              📝 تصدير Markdown
+            </button>
+          </div>
+        </div>
+        <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:16px;">
+          يقوم هذا النظام بجمع قياسات العتاد (RedMagic)، ونتائج اختبارات الأدوات الـ 12، وحالة الجدار الناري في ملف تدقيق متكامل وموقع تشفيرياً.
+        </p>
+      </section>
+    </main>
+  </div>
+
+  <!-- Modal: Bearer Auth Key Configuration -->
+  <div class="modal-overlay" id="token-modal">
+    <div class="modal-box">
+      <div class="modal-title">🔐 ضبط مفتاح الأمان (Bearer Auth Token)</div>
+      <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:14px;">
+        أدخل مفتاح الأمان المعتمد في <span class="mono">.gateway_token</span> أو المتغيرات البيئية للوصول لنقاط الـ API المحمية.
+      </p>
+      <input type="password" class="modal-input" id="token-input" placeholder="أدخل رمز التوكن السداسي (32-byte hex)...">
+      <div class="modal-footer">
+        <button class="btn-tactical" id="btn-close-token-modal">إلغاء</button>
+        <button class="btn-tactical primary" id="btn-save-token">حفظ وتنشيط الاتصال</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/js/gauges.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>

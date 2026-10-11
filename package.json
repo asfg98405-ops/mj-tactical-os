@@ -1,0 +1,31 @@
+{
+  "name": "mj-tactical-os",
+  "version": "1.0.0",
+  "description": "MJ Tactical OS: Sovereign Cyber Command Center & Edge Security Gateway for Android & NetHunter Rootless",
+  "main": "device-gateway.js",
+  "scripts": {
+    "start": "node device-gateway.js",
+    "dev": "node device-gateway.js",
+    "test": "node test/test_suite.js",
+    "audit": "bash scripts/audit_platform.sh",
+    "report": "node -e \"require('./device-gateway.js')\""
+  },
+  "keywords": [
+    "tactical-os",
+    "cyber-command",
+    "nethunter",
+    "zero-trust",
+    "android-gateway",
+    "pwa-cockpit",
+    "redmagic-telemetry"
+  ],
+  "author": "MJ Tactical Engineering <dev@mj-tactical.org>",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "express": "^5.3.0",
+    "ws": "^8.22.0"
+  }
+}

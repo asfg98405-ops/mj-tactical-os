@@ -1,0 +1,53 @@
+# MJ TACTICAL OS: DUAL LICENSING AGREEMENT
+
+Copyright (c) 2026 MJ (Founder & Sovereign Architect). All rights reserved.
+
+---
+
+## 1. Community Edition (Open-Source License: MIT)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+## 2. Commercial License & Subscription Tiers (By MJ)
+
+For commercial enterprise deployments, studios, and production security operations centers (SOC), **MJ Tactical OS** is offered under commercial licensing terms:
+
+### 🌟 Commercial Subscription Matrix:
+1. **Indie Tier ($9 / month):**
+   - Single Tactical Edge Node
+   - Full 12-Tool Network & Security Diagnostic Suite
+   - Progressive Web App (PWA) Interactive Cockpit
+   - Community support and monthly security patches
+
+2. **Studio Tier ($29 / month):**
+   - Up to 5 Synchronized Tactical Nodes
+   - Real-Time WebSocket Telemetry Stream (High Frequency 1s-60s)
+   - Custom Android Intent & Automation Bridge
+   - Forensic Report Generation & Automated Audit Exports (JSON / MD)
+   - Dedicated Priority Engineering Support
+
+3. **Enterprise Tier ($99 / month):**
+   - Unlimited Field & Edge Nodes
+   - Dedicated Kali NetHunter Rootless Module Customization
+   - Air-Gapped Deployment & Sovereign Zero-Trust SLA
+   - Perpetual Corporate Commercial License under Founder MJ
+
+For enterprise commercial licensing inquiries, contact Founder MJ via official project channels.

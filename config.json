@@ -1,0 +1,144 @@
+{
+  "system": {
+    "name": "MJ Tactical OS",
+    "codename": "Cyber Dragon Edition",
+    "version": "1.0.0",
+    "founder": "MJ",
+    "architecture": "5-Agent Sovereign Hierarchy"
+  },
+  "server": {
+    "host": "127.0.0.1",
+    "port": 4848,
+    "security": {
+      "bindInterfaceOnly": false,
+      "tokenFile": ".gateway_token",
+      "authToken": ""
+    }
+  },
+  "telemetry": {
+    "source": "mj-tactical-node",
+    "device": "RedMagic Tactical Node",
+    "default_interval_sec": 5,
+    "buffer_cap": 500
+  },
+  "wol": {
+    "default_broadcast": "255.255.255.255",
+    "default_port": 9,
+    "targets": {
+      "desktop_lab": {
+        "mac": "00:11:22:33:44:55",
+        "ip": "192.168.1.255",
+        "port": 9
+      }
+    }
+  },
+  "intent_actions": {
+    "open_browser": {
+      "subsystem": "CORE",
+      "action": "android.intent.action.VIEW",
+      "data": "http://127.0.0.1:4848"
+    },
+    "trigger_vibrate": {
+      "subsystem": "HARDWARE",
+      "action": "custom.vibrate"
+    }
+  },
+  "tools": [
+    {
+      "id": "port_scout",
+      "name": "Port Scout & Socket Handshake",
+      "name_ar": "كاشف المنافذ وسرعة الاتصال",
+      "category": "NETWORK",
+      "description": "Checks local/target TCP port availability and connection latency in milliseconds.",
+      "icon": "radar"
+    },
+    {
+      "id": "dns_audit",
+      "name": "DNS Resolver Benchmark",
+      "name_ar": "تدقيق واختبار محلل النطاقات DNS",
+      "category": "NETWORK",
+      "description": "Benchmarks query latency and integrity across configured DNS resolvers.",
+      "icon": "globe"
+    },
+    {
+      "id": "auth_probe",
+      "name": "Zero-Trust Auth & Ingress Probe",
+      "name_ar": "فحص مناعة الدخول والأمان الصفري",
+      "category": "SECURITY",
+      "description": "Verifies constant-time token comparison and unauthenticated ingress rejection (401).",
+      "icon": "shield"
+    },
+    {
+      "id": "header_inspect",
+      "name": "Security Headers Auditor",
+      "name_ar": "فحص ترويسات الأمان HTTP",
+      "category": "SECURITY",
+      "description": "Audits Content-Security-Policy, X-Frame-Options, and nosniff protection headers.",
+      "icon": "lock"
+    },
+    {
+      "id": "device_telemetry",
+      "name": "RedMagic Hardware & Thermal Prober",
+      "name_ar": "حساسات العتاد والحرارة لهاتف RedMagic",
+      "category": "TELEMETRY",
+      "description": "Polls battery level, SoC temperature sensors, and charging state via Termux API.",
+      "icon": "cpu"
+    },
+    {
+      "id": "interface_analyzer",
+      "name": "Network Interface & CIDR Analyzer",
+      "name_ar": "محلل واجهات الشبكة وكتل العناوين",
+      "category": "NETWORK",
+      "description": "Extracts routing tables, subnet masks, loopback isolation, and interface states.",
+      "icon": "share-2"
+    },
+    {
+      "id": "latency_jitter",
+      "name": "Packet Latency & Jitter Monitor",
+      "name_ar": "مراقب سرعة الاستجابة والتذبذب",
+      "category": "NETWORK",
+      "description": "Measures microsecond round-trip time and jitter fluctuations across the gateway.",
+      "icon": "activity"
+    },
+    {
+      "id": "wol_dispatch",
+      "name": "Wake-on-LAN Magic Packet Dispatcher",
+      "name_ar": "مرسل حزم الإيقاظ الشبكي WoL",
+      "category": "NETWORK",
+      "description": "Constructs and dispatches RFC compliant UDP magic packets for remote edge nodes.",
+      "icon": "zap"
+    },
+    {
+      "id": "memory_profiler",
+      "name": "V8 Memory Heap & RSS Profiler",
+      "name_ar": "مدقق استهلاك الرام وذاكرة V8",
+      "category": "SYSTEM",
+      "description": "Analyzes memory allocation, RSS footprint, heap usage, and detects leak anomalies.",
+      "icon": "server"
+    },
+    {
+      "id": "intent_validator",
+      "name": "Android Intent Whitelist Validator",
+      "name_ar": "مدقق القائمة البيضاء لأوامر أندرويد",
+      "category": "SECURITY",
+      "description": "Validates system intent dispatch requests against strictly locked security rules.",
+      "icon": "check-circle"
+    },
+    {
+      "id": "clipboard_guard",
+      "name": "Clipboard Buffer Guard & Inspector",
+      "name_ar": "حارس ومراقب حافظة النظام",
+      "category": "SECURITY",
+      "description": "Inspects system clipboard activity with zero persistent leakage of sensitive data.",
+      "icon": "clipboard"
+    },
+    {
+      "id": "nethunter_audit",
+      "name": "NetHunter Core Health & CVE Posture",
+      "name_ar": "فحص النواة والأمان الشامل لكالي NetHunter",
+      "category": "SECURITY",
+      "description": "Runs full NetHunter rootless platform audit script and generates forensic report.",
+      "icon": "terminal"
+    }
+  ]
+}

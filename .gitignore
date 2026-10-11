@@ -1,0 +1,22 @@
+# Logs & Telemetry Runtime
+logs/
+*.log
+npm-debug.log*
+
+# Runtime Credentials & Security Tokens
+.gateway_token
+.env
+*.pem
+*.key
+
+# Dependencies
+node_modules/
+
+# OS and Editor metadata
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Audit generated runs (keep sample if desired)
+reports/audit_2*.json
