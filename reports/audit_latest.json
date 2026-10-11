@@ -1,0 +1,54 @@
+{
+  "audit_id": "audit-1791727601-25502",
+  "timestamp": "2026-10-11T14:06:41Z",
+  "environment": "kali-nethunter-rootless",
+  "target": {
+    "host": "127.0.0.1",
+    "port": 4848,
+    "base_url": "http://127.0.0.1:4848"
+  },
+  "status": "DEGRADED",
+  "network_checks": {
+    "port_reachability": {
+      "reachable": true,
+      "latency_ms": 40.05
+    },
+    "dns_resolution": {
+      "resolved": false,
+      "latency_ms": 8.82
+    }
+  },
+  "security_checks": {
+    "zero_trust_unauthenticated_rejection": {
+      "enforced": true,
+      "expected_code": 401,
+      "actual_code": 401
+    },
+    "token_storage": {
+      "exists": false,
+      "permissions": "",
+      "is_secure": false
+    }
+  },
+  "api_benchmarks": {
+    "health_endpoint": {
+      "success": false,
+      "status_code": 0,
+      "latency_ms": 0,
+      "server_uptime": null,
+      "memory_usage": null
+    },
+    "device_status_endpoint": {
+      "success": false,
+      "status_code": 0,
+      "latency_ms": 0,
+      "battery": null,
+      "wifi": null
+    }
+  },
+  "host_system_metrics": {
+    "uptime_seconds": 0,
+    "load_average": "0 0 0",
+    "free_memory_mb": 8243.3
+  }
+}

@@ -118,9 +118,9 @@ AUDIT_ID="audit-$(date +%s)-${RANDOM}"
 
 log "Starting Mj-work-ai Platform Health & Security Audit on ${BASE_URL} (${TIMESTAMP})"
 
-# Ensure jq is installed
-if ! command -v jq &>/dev/null; then
-  echo "Error: jq is required but not installed." >&2
+# Ensure jq or node is installed
+if ! command -v jq &>/dev/null && ! command -v node &>/dev/null; then
+  echo "Error: Either jq or node is required for JSON reporting." >&2
   exit 1
 fi
 
@@ -295,6 +295,7 @@ if [[ "${DEVICE_STATUS_OK}" == "true" ]]; then
   fi
 fi
 
+if command -v jq &>/dev/null; then
 FINAL_REPORT=$(jq -n \
   --arg audit_id "${AUDIT_ID}" \
   --arg timestamp "${TIMESTAMP}" \
@@ -375,6 +376,95 @@ FINAL_REPORT=$(jq -n \
       free_memory_mb: ($mem_free_mb | tonumber)
     }
   }')
+else
+FINAL_REPORT=$(AUDIT_ID="${AUDIT_ID}" \
+TIMESTAMP="${TIMESTAMP}" \
+TARGET_HOST="${TARGET_HOST}" \
+TARGET_PORT="${TARGET_PORT}" \
+OVERALL_STATUS="${OVERALL_STATUS}" \
+PORT_REACHABLE="${PORT_REACHABLE}" \
+PORT_LATENCY_MS="${PORT_LATENCY_MS}" \
+SECURITY_REJECTION_OK="${SECURITY_REJECTION_OK}" \
+SECURITY_UNAUTH_CODE="${SECURITY_UNAUTH_CODE}" \
+API_HEALTH_OK="${API_HEALTH_OK}" \
+API_HEALTH_STATUS="${API_HEALTH_STATUS}" \
+API_HEALTH_LATENCY_MS="${API_HEALTH_LATENCY_MS}" \
+DEVICE_STATUS_OK="${DEVICE_STATUS_OK}" \
+DEVICE_STATUS_CODE="${DEVICE_STATUS_CODE}" \
+DEVICE_STATUS_LATENCY_MS="${DEVICE_STATUS_LATENCY_MS}" \
+DNS_RESOLVED="${DNS_RESOLVED}" \
+DNS_LATENCY_MS="${DNS_LATENCY_MS}" \
+TOKEN_FILE_EXISTS="${TOKEN_FILE_EXISTS}" \
+TOKEN_FILE_PERMS="${TOKEN_FILE_PERMS}" \
+TOKEN_SECURE="${TOKEN_SECURE}" \
+UPTIME_SEC="${UPTIME_SEC}" \
+LOAD_AVG="${LOAD_AVG}" \
+MEM_FREE_MB="${MEM_FREE_MB}" \
+PARSED_HEALTH_JSON="${PARSED_HEALTH_JSON}" \
+PARSED_DEV_JSON="${PARSED_DEV_JSON}" \
+node -e '
+  const e = process.env;
+  let hData = null;
+  let dData = null;
+  try { hData = JSON.parse(e.PARSED_HEALTH_JSON); } catch(_) {}
+  try { dData = JSON.parse(e.PARSED_DEV_JSON); } catch(_) {}
+  const rep = {
+    audit_id: e.AUDIT_ID,
+    timestamp: e.TIMESTAMP,
+    environment: "kali-nethunter-rootless",
+    target: {
+      host: e.TARGET_HOST,
+      port: parseInt(e.TARGET_PORT, 10),
+      base_url: "http://" + e.TARGET_HOST + ":" + e.TARGET_PORT
+    },
+    status: e.OVERALL_STATUS,
+    network_checks: {
+      port_reachability: {
+        reachable: e.PORT_REACHABLE === "true",
+        latency_ms: parseFloat(e.PORT_LATENCY_MS) || 0
+      },
+      dns_resolution: {
+        resolved: e.DNS_RESOLVED === "true",
+        latency_ms: parseFloat(e.DNS_LATENCY_MS) || 0
+      }
+    },
+    security_checks: {
+      zero_trust_unauthenticated_rejection: {
+        enforced: e.SECURITY_REJECTION_OK === "true",
+        expected_code: 401,
+        actual_code: parseInt(e.SECURITY_UNAUTH_CODE, 10) || 0
+      },
+      token_storage: {
+        exists: e.TOKEN_FILE_EXISTS === "true",
+        permissions: e.TOKEN_FILE_PERMS,
+        is_secure: e.TOKEN_SECURE === "true"
+      }
+    },
+    api_benchmarks: {
+      health_endpoint: {
+        success: e.API_HEALTH_OK === "true",
+        status_code: parseInt(e.API_HEALTH_STATUS, 10) || 0,
+        latency_ms: parseFloat(e.API_HEALTH_LATENCY_MS) || 0,
+        server_uptime: hData?.uptime || null,
+        memory_usage: hData?.memory || null
+      },
+      device_status_endpoint: {
+        success: e.DEVICE_STATUS_OK === "true",
+        status_code: parseInt(e.DEVICE_STATUS_CODE, 10) || 0,
+        latency_ms: parseFloat(e.DEVICE_STATUS_LATENCY_MS) || 0,
+        battery: dData?.battery || null,
+        wifi: dData?.wifi || null
+      }
+    },
+    host_system_metrics: {
+      uptime_seconds: parseInt(e.UPTIME_SEC, 10) || 0,
+      load_average: e.LOAD_AVG,
+      free_memory_mb: parseFloat(e.MEM_FREE_MB) || 0
+    }
+  };
+  console.log(JSON.stringify(rep, null, 2));
+')
+fi
 
 # 11. Write Report to Target Locations
 LATEST_REPORT_PATH="${REPORT_DIR}/audit_latest.json"

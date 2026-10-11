@@ -92,8 +92,8 @@ runTest('verifyToken rejects invalid or altered tokens', () => {
   assert.strictEqual(verifyToken(null), false);
   assert.strictEqual(verifyToken(undefined), false);
 
-  // Altered byte in 64-char string
-  const altered = '0' + AUTH_KEY.slice(1);
+  // Altered byte in 64-char string (guaranteed different)
+  const altered = (AUTH_KEY[0] === '0' ? '1' : '0') + AUTH_KEY.slice(1);
   assert.strictEqual(verifyToken(altered), false);
 });
 
