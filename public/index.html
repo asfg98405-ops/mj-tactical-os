@@ -54,11 +54,25 @@
           <span class="dot" style="background:#f59e0b;"></span>
           <span class="mono">AUTH: PENDING</span>
         </div>
+        <button class="btn-install-pwa" id="btn-install-pwa">
+          📱 تثبيت التطبيق على هاتفك
+        </button>
         <button class="btn-auth-config" id="btn-open-auth-modal">
           🔑 مفتاح الأمان (Bearer)
         </button>
       </div>
     </header>
+
+    <!-- Floating Active Tasks Tray (Parallel Multi-Tasking) -->
+    <aside class="active-tasks-tray" id="active-tasks-tray" aria-live="polite">
+      <div class="tray-header">
+        <span class="tray-counter-badge" id="tray-count-badge">⚡ 0 مهام</span>
+        <span class="tray-title">العمليات الجارية في الخلفية:</span>
+      </div>
+      <div class="tray-chips-container" id="tray-chips-container">
+        <!-- Rendered dynamically during background tasks execution -->
+      </div>
+    </aside>
 
     <!-- Navigation Tabs -->
     <nav class="tactical-nav">
@@ -172,12 +186,17 @@
 
     <!-- TAB 2: 12-TOOL SUITE -->
     <main id="tab-tools" class="tab-content">
-      <div style="margin-bottom: 16px; display:flex; justify-content:space-between; align-items:center;">
+      <div style="margin-bottom: 16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
         <div>
           <h2 style="font-size: 1.25rem; color:#fff;">مصفوفة أدوات فحص الشبكات والأمان التكتيكية الـ 12</h2>
           <p style="font-size:0.8rem; color:var(--text-muted);">
-            أدوات متوافقة 100% مع بيئة Kali NetHunter Rootless ومحمية بنظام التحقق الزمني الثابت.
+            أدوات متوافقة 100% مع بيئة Kali NetHunter Rootless وتدعم التشغيل المتوازي في الخلفية.
           </p>
+        </div>
+        <div>
+          <button class="btn-tactical primary" id="btn-run-all-parallel">
+            ⚡ تشغيل كافة الأدوات الـ 12 بالتوازي
+          </button>
         </div>
       </div>
 

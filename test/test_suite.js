@@ -151,6 +151,26 @@ runTest('Verify Cyber Dragon Crest SVG contains monogram MJ and vector paths', (
   assert.ok(svgContent.includes('<svg') && svgContent.includes('</svg>'), 'Valid SVG tags');
 });
 
+runTest('Verify PWA manifest has standalone display and fullscreen override', () => {
+  const manifest = JSON.parse(fs.readFileSync(path.join(BASE_DIR, 'public/manifest.json'), 'utf8'));
+  assert.strictEqual(manifest.display, 'standalone');
+  assert.ok(Array.isArray(manifest.display_override) && manifest.display_override.includes('fullscreen'));
+});
+
+runTest('Verify Active Tasks Tray and Native PWA Install Button exist in index.html', () => {
+  const html = fs.readFileSync(path.join(BASE_DIR, 'public/index.html'), 'utf8');
+  assert.ok(html.includes('id="active-tasks-tray"'), 'Missing active-tasks-tray element');
+  assert.ok(html.includes('id="btn-install-pwa"'), 'Missing btn-install-pwa element');
+  assert.ok(html.includes('id="btn-run-all-parallel"'), 'Missing btn-run-all-parallel element');
+});
+
+runTest('Verify app.js includes parallel multi-tasking and localhost auto-auth engine', () => {
+  const jsContent = fs.readFileSync(path.join(BASE_DIR, 'public/js/app.js'), 'utf8');
+  assert.ok(jsContent.includes('runAllToolsParallel'), 'Missing runAllToolsParallel function');
+  assert.ok(jsContent.includes('initAutoAuth'), 'Missing initAutoAuth function');
+  assert.ok(jsContent.includes('updateActiveTasksTray'), 'Missing updateActiveTasksTray function');
+});
+
 // 5. Data Sanitization & Zero Leakage Audit
 console.log('\n[5/6] Verifying Zero Private Data Leakage:');
 

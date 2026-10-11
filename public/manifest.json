@@ -3,10 +3,21 @@
   "short_name": "MJ Tactical",
   "description": "Sovereign Edge Command & Diagnostic Cockpit for NetHunter and Android",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "display_override": [
+    "fullscreen",
+    "standalone",
+    "minimal-ui"
+  ],
+  "orientation": "any",
   "background_color": "#050c18",
   "theme_color": "#00f0ff",
-  "orientation": "any",
+  "categories": [
+    "utilities",
+    "security",
+    "productivity"
+  ],
   "icons": [
     {
       "src": "/assets/dragon-crest.svg",

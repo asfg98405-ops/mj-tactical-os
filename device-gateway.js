@@ -334,9 +334,32 @@ app.get('/api', (req, res) => {
       'POST /api/telemetry': 'Ingest external telemetry events',
       'POST /api/control/mode': 'Set scan mode and frequency slider interval',
       'POST /api/control/firewall': 'Toggle loopback firewall isolation',
-      'POST /api/reports/generate': 'Generate and compile forensic audit report',
+      'GET  /api/reports/generate': 'Generate and compile forensic audit report',
+      'GET  /api/auth/bootstrap': 'Zero-Click Localhost Auto-Auth bootstrap (Loopback only)',
       'WS   /ws?token=<KEY>': 'Real-time WebSocket telemetry stream'
     }
+  });
+});
+
+/**
+ * GET /api/auth/bootstrap
+ * Zero-Click Localhost Authentication Bootstrap
+ * Strictly checks isLocalhost(req). Provides active AUTH_KEY to loopback PWA clients.
+ */
+app.get('/api/auth/bootstrap', (req, res) => {
+  if (!isLocalhost(req)) {
+    return res.status(403).json({
+      status: 'FORBIDDEN',
+      error: 'Auto-auth bootstrap is strictly restricted to loopback (127.0.0.1) clients.'
+    });
+  }
+
+  res.json({
+    status: 'OK',
+    auto_auth: true,
+    token: AUTH_KEY,
+    node_id: operationalState.nodeId,
+    timestamp: new Date().toISOString()
   });
 });
 

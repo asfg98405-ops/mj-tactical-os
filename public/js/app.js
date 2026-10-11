@@ -1,7 +1,8 @@
 /**
  * ==============================================================================
  * app.js - MJ Tactical OS Cockpit Controller
- * Multi-Agent Interface, Telemetry Engine & 12-Tool Suite Orchestrator
+ * Multi-Agent Interface, Parallel Multi-Tasking Engine, Localhost Zero-Click Auth
+ * Architecture: 5-Autonomous Agent Hierarchy | Edition: Cyber Blue Dragon
  * ==============================================================================
  */
 
@@ -18,18 +19,24 @@ const APP_STATE = {
   firewallIsolated: false,
   gauges: {},
   tools: [],
-  latestReport: null
+  toolStates: {},      // toolId -> { status: 'idle'|'running'|'completed'|'error', startTime, result }
+  activeTasks: new Map(), // toolId -> { id, name, name_ar, startTime }
+  latestReport: null,
+  deferredInstallPrompt: null
 };
 
 // --- Initialization ---
-document.addEventListener('DOMContentLoaded', () => {
-  initToken();
+document.addEventListener('DOMContentLoaded', async () => {
   initNavigation();
   initGauges();
   initControls();
   initToolSuite();
   initReporting();
+  initPWAInstall();
   registerPWA();
+
+  // Localhost Zero-Click Auto-Auth Bootstrap
+  await initAutoAuth();
 
   // Initial Data Fetch & WebSocket Connect
   connectWebSocket();
@@ -37,8 +44,10 @@ document.addEventListener('DOMContentLoaded', () => {
   startPolling();
 });
 
-// 1. Token & Authentication Management
-function initToken() {
+// ==============================================================================
+// 1. Localhost Zero-Click Auto-Auth & Token Management
+// ==============================================================================
+async function initAutoAuth() {
   const urlParams = new URLSearchParams(window.location.search);
   const queryToken = urlParams.get('token');
   if (queryToken) {
@@ -46,8 +55,24 @@ function initToken() {
     localStorage.setItem('mj_tactical_token', APP_STATE.token);
   }
 
+  // Attempt Zero-Click Localhost Auto-Auth Bootstrap from gateway
+  try {
+    const res = await fetch('/api/auth/bootstrap');
+    if (res.ok) {
+      const data = await res.json();
+      if (data.auto_auth && data.token) {
+        APP_STATE.token = data.token;
+        localStorage.setItem('mj_tactical_token', data.token);
+        console.log('[AUTO-AUTH] Zero-Click Localhost authentication verified.');
+      }
+    }
+  } catch (err) {
+    console.debug('[AUTO-AUTH] Bootstrap unavailable or remote client:', err.message);
+  }
+
   updateAuthUI();
 
+  // Modal Auth Key handlers
   document.getElementById('btn-save-token')?.addEventListener('click', () => {
     const inputVal = document.getElementById('token-input')?.value.trim();
     if (inputVal) {
@@ -75,10 +100,10 @@ function updateAuthUI() {
   const authPill = document.getElementById('auth-status-pill');
   if (authPill) {
     if (APP_STATE.token && APP_STATE.token.length >= 8) {
-      authPill.innerHTML = `<span class="dot" style="background:#10b981;"></span> AUTH: ARMED`;
+      authPill.innerHTML = `<span class="dot" style="background:#10b981;"></span> <span class="mono">AUTH: ARMED (AUTO)</span>`;
       authPill.className = 'status-pill online';
     } else {
-      authPill.innerHTML = `<span class="dot" style="background:#f59e0b;"></span> AUTH: REQUIRED`;
+      authPill.innerHTML = `<span class="dot" style="background:#f59e0b;"></span> <span class="mono">AUTH: REQUIRED</span>`;
       authPill.className = 'status-pill';
     }
   }
@@ -92,7 +117,9 @@ function getAuthHeaders() {
   return headers;
 }
 
+// ==============================================================================
 // 2. Navigation Tabs
+// ==============================================================================
 function initNavigation() {
   const tabButtons = document.querySelectorAll('.nav-tab-btn');
   tabButtons.forEach((btn) => {
@@ -108,7 +135,9 @@ function initNavigation() {
   });
 }
 
+// ==============================================================================
 // 3. Radial Gauges Initialization
+// ==============================================================================
 function initGauges() {
   APP_STATE.gauges.cpu = new TacticalGauge('gauge-cpu', {
     min: 0,
@@ -145,9 +174,11 @@ function initGauges() {
   });
 }
 
+// ==============================================================================
 // 4. Control Deck (Sliders & Switches)
+// ==============================================================================
 function initControls() {
-  // Telemetry Interval Slider
+  // Telemetry Interval Slider (1s - 60s)
   const slider = document.getElementById('scan-freq-slider');
   const sliderVal = document.getElementById('scan-freq-val');
 
@@ -177,7 +208,8 @@ function initControls() {
     modeSelect.addEventListener('change', async (e) => {
       const newMode = e.target.value;
       APP_STATE.scanMode = newMode;
-      document.getElementById('mode-status-text').textContent = newMode;
+      const modeText = document.getElementById('mode-status-text');
+      if (modeText) modeText.textContent = newMode;
       try {
         await fetch('/api/control/mode', {
           method: 'POST',
@@ -195,7 +227,8 @@ function initControls() {
       const isArmed = e.target.checked;
       APP_STATE.gatewayArmed = isArmed;
       const statusText = isArmed ? 'ARMED' : 'STANDBY';
-      document.getElementById('gateway-status-badge').textContent = statusText;
+      const badge = document.getElementById('gateway-status-badge');
+      if (badge) badge.textContent = `GATEWAY: ${statusText} [4848]`;
       try {
         await fetch('/api/control/mode', {
           method: 'POST',
@@ -233,7 +266,9 @@ function initControls() {
   });
 }
 
-// 5. 12-Tool Suite Execution Engine
+// ==============================================================================
+// 5. Parallel Multi-Tasking Engine & 12-Tool Suite
+// ==============================================================================
 const DEFAULT_TOOLS = [
   { id: 'port_scout', name: 'Port Scout & Socket Handshake', name_ar: 'كاشف المنافذ والاتصال', cat: 'NETWORK', desc: 'Checks TCP port accessibility and handshake latency in ms.' },
   { id: 'dns_audit', name: 'DNS Resolver Benchmark', name_ar: 'تدقيق واختبار محلل DNS', cat: 'NETWORK', desc: 'Measures resolution response times across system nameservers.' },
@@ -255,6 +290,8 @@ function initToolSuite() {
 
   container.innerHTML = '';
   DEFAULT_TOOLS.forEach((tool) => {
+    APP_STATE.toolStates[tool.id] = { status: 'idle', startTime: null, lastResult: null };
+
     const card = document.createElement('div');
     card.className = 'tool-card';
     card.id = `card-${tool.id}`;
@@ -270,7 +307,7 @@ function initToolSuite() {
       </div>
       <div class="tool-footer">
         <span style="font-size:0.7rem; color:var(--text-muted); font-family:var(--font-mono);">${tool.id}</span>
-        <button class="btn-run-tool" data-tool="${tool.id}">
+        <button class="btn-run-tool" id="btn-run-${tool.id}" data-tool="${tool.id}">
           ▶ تشغيل الفحص
         </button>
       </div>
@@ -281,6 +318,11 @@ function initToolSuite() {
     });
 
     container.appendChild(card);
+  });
+
+  // Parallel Execution: Run All 12 Tools Button
+  document.getElementById('btn-run-all-parallel')?.addEventListener('click', () => {
+    runAllToolsParallel();
   });
 
   // Console Actions (Copy, Download)
@@ -300,14 +342,60 @@ function initToolSuite() {
   });
 }
 
+/**
+ * Execute all 12 tools simultaneously in the background without blocking
+ */
+function runAllToolsParallel() {
+  console.log('[MULTI-TASKING] Spawning all 12 tools in parallel...');
+  DEFAULT_TOOLS.forEach((tool) => {
+    runTool(tool.id);
+  });
+}
+
+/**
+ * Executes a specific tool with completely independent state and background non-blocking execution
+ */
 async function runTool(toolId) {
+  const toolMeta = DEFAULT_TOOLS.find((t) => t.id === toolId) || { name: toolId, name_ar: toolId };
+  const cardEl = document.getElementById(`card-${toolId}`);
   const statusEl = document.getElementById(`status-${toolId}`);
-  if (statusEl) {
-    statusEl.textContent = 'RUNNING...';
-    statusEl.style.color = 'var(--cyan-neon)';
+  const btnEl = document.getElementById(`btn-run-${toolId}`);
+
+  // Prevent duplicate execution of the exact same tool if already running
+  if (APP_STATE.toolStates[toolId]?.status === 'running') {
+    return;
   }
 
+  // 1. Mark as Running with illuminated pulsing indicator
+  APP_STATE.toolStates[toolId] = { status: 'running', startTime: Date.now(), lastResult: null };
+  APP_STATE.activeTasks.set(toolId, {
+    id: toolId,
+    name: toolMeta.name,
+    name_ar: toolMeta.name_ar,
+    startTime: Date.now()
+  });
+
+  if (cardEl) {
+    cardEl.classList.remove('is-completed', 'is-error');
+    cardEl.classList.add('is-running');
+  }
+
+  if (statusEl) {
+    statusEl.className = 'tool-status-state running';
+    statusEl.innerHTML = `<span class="pulsing-indicator"></span> <span class="mono">RUNNING</span>`;
+  }
+
+  if (btnEl) {
+    btnEl.disabled = true;
+    btnEl.innerHTML = `<span class="tray-spinner" style="width:10px; height:10px;"></span> جاري الفحص...`;
+  }
+
+  // Update floating Active Tasks Tray
+  updateActiveTasksTray();
+
+  // 2. Execute Asynchronously in Background
   try {
+    const startTime = Date.now();
     const res = await fetch(`/api/tools/${toolId}`, {
       method: 'POST',
       headers: getAuthHeaders(),
@@ -315,18 +403,96 @@ async function runTool(toolId) {
     });
 
     const data = await res.json();
+    const elapsedMs = Date.now() - startTime;
+    const isSuccess = data.status === 'OK';
+
+    // 3. Update Independent Tool State
+    APP_STATE.toolStates[toolId] = {
+      status: isSuccess ? 'completed' : 'error',
+      startTime: null,
+      lastResult: data
+    };
+
+    if (cardEl) {
+      cardEl.classList.remove('is-running');
+      cardEl.classList.add(isSuccess ? 'is-completed' : 'is-error');
+    }
+
     if (statusEl) {
-      statusEl.textContent = data.status === 'OK' ? 'PASS' : 'WARN';
-      statusEl.style.color = data.status === 'OK' ? 'var(--emerald)' : 'var(--amber)';
+      statusEl.className = `tool-status-state ${isSuccess ? 'completed' : 'error'}`;
+      statusEl.innerHTML = isSuccess ? `✓ PASS (${elapsedMs}ms)` : `✗ WARN`;
+    }
+
+    if (btnEl) {
+      btnEl.disabled = false;
+      btnEl.innerHTML = `▶ إعادة الفحص`;
     }
 
     displayConsoleOutput(toolId, data);
   } catch (err) {
-    if (statusEl) {
-      statusEl.textContent = 'ERROR';
-      statusEl.style.color = 'var(--crimson)';
+    APP_STATE.toolStates[toolId] = { status: 'error', startTime: null, lastResult: { error: err.message } };
+
+    if (cardEl) {
+      cardEl.classList.remove('is-running');
+      cardEl.classList.add('is-error');
     }
+
+    if (statusEl) {
+      statusEl.className = 'tool-status-state error';
+      statusEl.innerHTML = `✗ ERROR`;
+    }
+
+    if (btnEl) {
+      btnEl.disabled = false;
+      btnEl.innerHTML = `▶ إعادة الفحص`;
+    }
+
     displayConsoleOutput(toolId, { error: err.message });
+  } finally {
+    // 4. Clean up Active Task
+    APP_STATE.activeTasks.delete(toolId);
+    updateActiveTasksTray();
+  }
+}
+
+/**
+ * Updates the floating Active Tasks Tray at the top of the interface
+ */
+function updateActiveTasksTray() {
+  const trayEl = document.getElementById('active-tasks-tray');
+  const countBadge = document.getElementById('tray-count-badge');
+  const chipsContainer = document.getElementById('tray-chips-container');
+  if (!trayEl || !countBadge || !chipsContainer) return;
+
+  const count = APP_STATE.activeTasks.size;
+
+  if (count > 0) {
+    trayEl.classList.add('active');
+    countBadge.textContent = `⚡ ${count} مهام جارية`;
+
+    chipsContainer.innerHTML = '';
+    APP_STATE.activeTasks.forEach((task) => {
+      const chip = document.createElement('div');
+      chip.className = 'tray-task-chip';
+      chip.title = 'اضغط للانتقال إلى الأداة في اللوحة';
+      chip.innerHTML = `
+        <span class="tray-spinner"></span>
+        <span>${task.name_ar}</span>
+        <span style="font-size:0.65rem; color:var(--cyan-neon);">[${task.id}]</span>
+      `;
+      chip.addEventListener('click', () => {
+        // Switch to tools tab if not active
+        document.querySelector('.nav-tab-btn[data-tab="tab-tools"]')?.click();
+        const targetCard = document.getElementById(`card-${task.id}`);
+        if (targetCard) {
+          targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      });
+      chipsContainer.appendChild(chip);
+    });
+  } else {
+    // Graceful fade out
+    trayEl.classList.remove('active');
   }
 }
 
@@ -342,7 +508,9 @@ function displayConsoleOutput(toolId, data) {
   }
 }
 
+// ==============================================================================
 // 6. Reports & Forensics
+// ==============================================================================
 function initReporting() {
   document.getElementById('btn-generate-report')?.addEventListener('click', async () => {
     try {
@@ -391,7 +559,9 @@ function downloadFile(filename, content, mime) {
   URL.revokeObjectURL(url);
 }
 
+// ==============================================================================
 // 7. WebSocket Live Streaming
+// ==============================================================================
 function connectWebSocket() {
   if (APP_STATE.ws) {
     try { APP_STATE.ws.close(); } catch (_) {}
@@ -407,7 +577,7 @@ function connectWebSocket() {
       APP_STATE.wsConnected = true;
       const wsPill = document.getElementById('ws-status-pill');
       if (wsPill) {
-        wsPill.innerHTML = `<span class="dot" style="background:#10b981;"></span> WS: STREAMING`;
+        wsPill.innerHTML = `<span class="dot" style="background:#10b981;"></span> <span class="mono">WS: STREAMING</span>`;
         wsPill.className = 'status-pill online';
       }
     };
@@ -423,7 +593,7 @@ function connectWebSocket() {
       APP_STATE.wsConnected = false;
       const wsPill = document.getElementById('ws-status-pill');
       if (wsPill) {
-        wsPill.innerHTML = `<span class="dot" style="background:#f59e0b;"></span> WS: STANDBY`;
+        wsPill.innerHTML = `<span class="dot" style="background:#f59e0b;"></span> <span class="mono">WS: STANDBY</span>`;
         wsPill.className = 'status-pill';
       }
       setTimeout(connectWebSocket, 5000);
@@ -449,7 +619,9 @@ function handleWsEvent(msg) {
   }
 }
 
+// ==============================================================================
 // 8. REST Polling Fallback
+// ==============================================================================
 async function fetchInitialData() {
   try {
     // Health Check
@@ -462,8 +634,10 @@ async function fetchInitialData() {
       if (data.system?.load_average && APP_STATE.gauges.cpu) {
         APP_STATE.gauges.cpu.setValue(Math.min(100, Math.round(data.system.load_average[0] * 20)));
       }
-      document.getElementById('uptime-display').textContent = data.uptime.process_formatted;
-      document.getElementById('node-id-display').textContent = data.system.node_id;
+      const uptimeEl = document.getElementById('uptime-display');
+      if (uptimeEl) uptimeEl.textContent = data.uptime.process_formatted;
+      const nodeEl = document.getElementById('node-id-display');
+      if (nodeEl) nodeEl.textContent = data.system.node_id;
     }
 
     // Hardware Telemetry
@@ -497,9 +671,55 @@ function closeModal(id) {
   document.getElementById(id)?.classList.remove('active');
 }
 
-// 9. PWA Registration
+// ==============================================================================
+// 9. PWA Native Standalone Installation Engine
+// ==============================================================================
+function initPWAInstall() {
+  const installBtn = document.getElementById('btn-install-pwa');
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    // Prevent the mini-infobar from appearing on mobile
+    e.preventDefault();
+    APP_STATE.deferredInstallPrompt = e;
+
+    if (installBtn) {
+      installBtn.style.display = 'inline-flex';
+      installBtn.classList.add('pulse-glow');
+    }
+    console.log('[PWA] beforeinstallprompt captured, ready for native 1-click install.');
+  });
+
+  installBtn?.addEventListener('click', async () => {
+    if (APP_STATE.deferredInstallPrompt) {
+      APP_STATE.deferredInstallPrompt.prompt();
+      const { outcome } = await APP_STATE.deferredInstallPrompt.userChoice;
+      console.log(`[PWA] Install choice outcome: ${outcome}`);
+      if (outcome === 'accepted') {
+        installBtn.style.display = 'none';
+      }
+      APP_STATE.deferredInstallPrompt = null;
+    } else {
+      // In browsers where beforeinstallprompt isn't fired (or if already installed)
+      alert('📱 لتثبيت التطبيق على هاتفك:\nانقر على زر خيارات المتصفح (⋮) ثم اختر "إضافة إلى الشاشة الرئيسية" (Add to Home screen) أو "تثبيت التطبيق".');
+    }
+  });
+
+  window.addEventListener('appinstalled', () => {
+    console.log('[PWA] MJ Tactical OS installed as native standalone app.');
+    if (installBtn) installBtn.style.display = 'none';
+  });
+
+  // If already running in standalone mode (fullscreen PWA), hide install button
+  if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+    console.log('[PWA] Running in native standalone mode.');
+    if (installBtn) installBtn.style.display = 'none';
+  }
+}
+
 function registerPWA() {
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js').catch(() => {});
+    navigator.serviceWorker.register('/sw.js').catch((err) => {
+      console.debug('[PWA] ServiceWorker registration failed:', err.message);
+    });
   }
 }
